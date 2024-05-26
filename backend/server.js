@@ -66,12 +66,15 @@ const authToken = async (req, res, next) => {
   }
 };
 
+app.set("trust proxy", 1);
+
 // Middleware for initializing session
 app.use(
   session({
     secret: process.env.SECRET, // load from .env or onrender's enviroment
     resave: false,
     saveUninitialized: true,
+    proxy: true,
     cookie: {
       secure: process.env.SECURE === "true",
       // domain: process.env.FRONTEND_DOMAIN,
@@ -145,7 +148,6 @@ app.post("/login", (req, res, next) => {
     if (!user) return res.status(401).end();
 
     req.logIn(user, (err) => {
-      console.log("Error logging in: ", err);
       if (err) return next(err);
       console.log("User logged in: ", user);
       res.cookie("test", "value");
