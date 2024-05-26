@@ -74,6 +74,7 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: process.env.SECURE === "true",
+      domain: process.env.FRONTEND_DOMAIN,
       httpOnly: true, // Make session cookie unavailable to read in frontend for security
     },
   })
