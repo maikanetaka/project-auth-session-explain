@@ -73,7 +73,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: Boolean(process.env.SECURE),
+      secure: process.env.SECURE === "true",
       httpOnly: true, // Make session cookie unavailable to read in frontend for security
     },
   })
