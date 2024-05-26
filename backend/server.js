@@ -74,7 +74,7 @@ app.use(
     saveUninitialized: true,
     cookie: {
       secure: process.env.SECURE === "true",
-      domain: process.env.FRONTEND_DOMAIN,
+      // domain: process.env.FRONTEND_DOMAIN,
       sameSite: process.env.SECURE === "true" ? "none" : "lax",
       httpOnly: true, // Make session cookie unavailable to read in frontend for security
     },
@@ -145,7 +145,10 @@ app.post("/login", (req, res, next) => {
     if (!user) return res.status(401).end();
 
     req.logIn(user, (err) => {
+      console.log("Error logging in: ", err);
       if (err) return next(err);
+      console.log("User logged in: ", user);
+      res.cookie("test", "value");
       return res.status(200).end();
     });
   })(req, res, next);
