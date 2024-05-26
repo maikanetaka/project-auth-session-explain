@@ -10,7 +10,7 @@ export const Sessions = () => {
     const fetchSessions = async () => {
       try {
         const response = await fetch(
-          "https://project-auth-lh3p.onrender.com/sessions",
+          `${import.meta.env.VITE_API_URL}/sessions`,
           {
             credentials: "include", // Include the session cookie in the request to the backend
           }
@@ -30,6 +30,13 @@ export const Sessions = () => {
     fetchSessions();
   }, [navigate]);
 
+  async function logout() {
+    await fetch(`${import.meta.env.VITE_API_URL}/logout`, {
+      credentials: "include", // Include the session cookie in the request to the backend
+    });
+    navigate("/login")
+  }
+
   if (!userData) {
     // Show loading while Sessions are being fetched
     return <p>Loading...</p>;
@@ -45,6 +52,7 @@ export const Sessions = () => {
           <li>Access Token:{userData.AccessToken} </li>
         </ul>
       </div>
+      <button onClick={logout}>Logout</button>
     </>
   );
 };

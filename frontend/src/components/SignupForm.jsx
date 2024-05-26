@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BackHome } from "./BackHome";
+import { useNavigate } from "react-router-dom";
 
 export const SignupForm = () => {
   const [formData, setFormData] = useState({
@@ -8,32 +9,35 @@ export const SignupForm = () => {
     password: "",
   });
 
-  const handleChange = e => {
+  const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
 
     try {
-      const response = await fetch(
-        "https://project-auth-lh3p.onrender.com/signup",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-      if (!response.ok) throw new Error("Signup failed");
-      console.log("successful", formData);
-    } catch (error) {
-      console.error("Error", error);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message);
+      } else {
+        navigate("/login");
+      }
     } finally {
       setFormData({
         username: "",
@@ -76,6 +80,7 @@ export const SignupForm = () => {
         </label>
         <button type="submit">Sign up!</button>
       </form>
+      {error && <span> {error} </span>}
     </>
   );
 };

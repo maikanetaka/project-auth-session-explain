@@ -8,28 +8,27 @@ import mongoose from "mongoose";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 
-dotenv.config();
+dotenv.config(); // this code loads .env file on local & onRender's enviroment variables
 const { Schema } = mongoose;
-const mongoUrl =
-  process.env.MONGO_URL || "mongodb://localhost/project-authentication";
+const mongoUrl = process.env.MONGO_URL; // load from .env or onrender's enviroment
 mongoose.connect(mongoUrl);
 mongoose.Promise = Promise;
 
 const userSchema = new Schema({
-  username: { type: String, unique: true, required: true, minLength: 8 },
+  username: { type: String, unique: true, required: true, minLength: 4 },
   email: {
     type: String,
     unique: true,
     required: true,
     match: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   },
-  password: { type: String, required: true },
+  password: { type: String, required: true, minLength: 4 },
   accessToken: { type: String, default: () => bcrypt.genSaltSync() },
 });
 
 const User = mongoose.model("User", userSchema);
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT; // load from .env or onrender's enviroment
 const app = express();
 
 const authUser = async (username, password, done) => {
@@ -70,11 +69,11 @@ const authToken = async (req, res, next) => {
 // Middleware for initializing session
 app.use(
   session({
-    secret: "secret",
+    secret: process.env.SECRET, // load from .env or onrender's enviroment
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: true,
+      secure: process.env.API_URL.startsWith("https") ? true : false,
       httpOnly: true, // Make session cookie unavailable to read in frontend for security
     },
   })
@@ -86,7 +85,7 @@ app.use(passport.session());
 // Add middlewares to enable cors and json body parsing
 app.use(
   cors({
-    origin: "https://team-peace-auth.netlify.app/",
+    origin: process.env.FRONTEND_ORIGIN, // load from .env or onrender's enviroment
     credentials: true,
     methods: ["GET", "POST"],
   }) // Allow sending credentials from frontend to backend
@@ -101,34 +100,36 @@ app.get("/", (req, res) => {
 
 // Sign-up
 app.post("/signup", async (req, res) => {
-  //  if (!username || !email || !password) {
-  //    return res.status(400).json({ message: "All fields are required." });
-  //  }
-  //  if (username.length < 5) {
-  //    return res
-  //      .status(400)
-  //      .json({ message: "Username must be at least 5 characters long." });
-  //  }
-  //  if (!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
-  //    return res.status(400).json({ message: "Invalid email format." });
-  //  }
-  //  if (password.length < 8) {
-  //    return res
-  //      .status(400)
-  //      .json({ message: "Password must be at least 8 characters long." });
-  //  }
   try {
     const { username, email, password } = req.body;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+    if (username.length < 4) {
+      return res
+        .status(400)
+        .json({ message: "Username must be at least 4 characters long." });
+    }
+    if (!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
+      return res.status(400).json({ message: "Invalid email format." });
+    }
+    if (password.length < 4) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 4 characters long." });
+    }
+
     const user = new User({
       username,
       email,
       password: bcrypt.hashSync(password, 10),
     });
-    console.log(user);
 
     await user.save();
     res.status(201).json({ id: user._id, accessToken: user.accessToken });
   } catch (error) {
+    console.log("Failed to sign up", error);
     res
       .status(400)
       .json({ message: "Could not sign up.", error: error.errors });
@@ -141,12 +142,19 @@ app.post("/login", (req, res, next) => {
     if (err) return next(err);
     if (!user) return res.status(401).end();
 
-    req.logIn(user, err => {
+    req.logIn(user, (err) => {
       if (err) return next(err);
       return res.status(200).end();
     });
   })(req, res, next);
 });
+
+// Log-out
+app.post("/logout", (req, res, next) => {
+  req.logout(err => {
+    if (err) { return next(err) }
+  }) 
+})
 
 // sessions - Authentication method 1 - by session
 app.get("/sessions", checkAuthenticated, (req, res) => {

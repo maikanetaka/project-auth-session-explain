@@ -11,30 +11,27 @@ export const LoginForm = () => {
 
   const navigate = useNavigate();
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setLoginData({
       ...loginData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     console.log(loginData);
     e.preventDefault();
     try {
-      const response = await fetch(
-        "https://project-auth-lh3p.onrender.com/login",
-        {
-          method: "POST",
-          credentials: "include", // Include the session cookie in the request to the backend
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(loginData),
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+        method: "POST",
+        credentials: "include", // Include the session cookie in the request to the backend
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginData),
+      });
       if (!response.ok) throw new Error("Failed to login");
-      console.log("succesful",response);
+      console.log("succesful", response);
 
       navigate("/sessions");
     } catch (error) {
