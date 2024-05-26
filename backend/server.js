@@ -73,7 +73,7 @@ app.use(
     resave: false,
     saveUninitialized: true,
     cookie: {
-      secure: process.env.API_URL.startsWith("https") ? true : false,
+      secure: Boolean(process.env.SECURE),
       httpOnly: true, // Make session cookie unavailable to read in frontend for security
     },
   })
@@ -151,10 +151,12 @@ app.post("/login", (req, res, next) => {
 
 // Log-out
 app.post("/logout", (req, res, next) => {
-  req.logout(err => {
-    if (err) { return next(err) }
-  }) 
-})
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+  });
+});
 
 // sessions - Authentication method 1 - by session
 app.get("/sessions", checkAuthenticated, (req, res) => {
