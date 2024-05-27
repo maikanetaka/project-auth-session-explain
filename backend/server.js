@@ -66,7 +66,7 @@ const authToken = async (req, res, next) => {
   }
 };
 
-app.set("trust proxy", 1);
+app.set("trust proxy", 1); //This is needed for deploying on cloud hosting website like netlify and render!!
 
 // Middleware for initializing session
 app.use(
@@ -74,11 +74,10 @@ app.use(
     secret: process.env.SECRET, // load from .env or onrender's enviroment
     resave: false,
     saveUninitialized: true,
-    proxy: true,
+    proxy: true, // same thing as app.set("trust proxy", 1);
     cookie: {
-      secure: process.env.SECURE === "true",
-      // domain: process.env.FRONTEND_DOMAIN,
-      sameSite: process.env.SECURE === "true" ? "none" : "lax",
+      secure: process.env.SECURE === "true", // true = cookie allowed only https (on prod), local host in .env file mentions "false"
+      sameSite: process.env.SECURE === "true" ? "none" : "lax", // Enable communicating between domains (backend and frontend on prodution = render and netlify)
       httpOnly: true, // Make session cookie unavailable to read in frontend for security
     },
   })
@@ -150,7 +149,6 @@ app.post("/login", (req, res, next) => {
     req.logIn(user, (err) => {
       if (err) return next(err);
       console.log("User logged in: ", user);
-      res.cookie("test", "value");
       return res.status(200).end();
     });
   })(req, res, next);
